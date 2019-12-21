@@ -209,6 +209,10 @@ void Tiltrotor::update_mc_state()
 
 	// make sure motors are not tilted
 	_tilt_control = _params_tiltrotor.tilt_mc;
+
+	VtolType::pusher_assist();
+
+	_tilt_control = _hover_pusher_or_tilt_forward_actuation;
 }
 
 void Tiltrotor::update_fw_state()
