@@ -388,8 +388,8 @@ bool VtolType::is_channel_set(const int channel, const int target)
 void VtolType::pusher_assist()
 {
 
-	// normalized pusher throttle (standard VTOL) or tilt (tiltrotor), initialize to 0
-	_hover_pusher_or_tilt_forward_actuation = 0.0f;
+	// normalized pusher support throttle (standard VTOL) or tilt (tiltrotor), initialize to 0
+	_forward_thrust_support = 0.0f;
 
 	// if the thrust scale param is zero or the drone is on manual mode,
 	// then the pusher-for-pitch strategy is disabled and we can return
@@ -398,8 +398,7 @@ void VtolType::pusher_assist()
 		return;
 	}
 
-	// Do not engage pusher assist during a failsafe event
-	// There could be a problem with the fixed wing drive
+	// Do not engage pusher assist during a failsafe event (could be a problem with the fixed wing drive)
 	if (_attc->get_vtol_vehicle_status()->vtol_transition_failsafe) {
 		return;
 	}
@@ -425,28 +424,19 @@ void VtolType::pusher_assist()
 	body_z_sp.normalize();
 
 	// calculate the desired pitch seen in the heading frame
-	// this value corresponds to the amount the vehicle would try to pitch forward
-	float pitch_forward = atan2f(body_z_sp(0), body_z_sp(2));
+	// this value corresponds to the amount the vehicle would try to pitch down
+	float pitch_down = atan2f(body_z_sp(0), body_z_sp(2));
 
-	// only allow pitching forward up to threshold, the rest of the desired
-	// forward acceleration will be compensated by the pusher
-	if (pitch_forward < -_params->down_pitch_max) {
+	// only allow pitching down up to threshold, the rest of the desired
+	// forward acceleration will be compensated by the pusher/tilt
+	if (pitch_down < -_params->down_pitch_max) {
 		// desired roll angle in heading frame stays the same
 		float roll_new = -asinf(body_z_sp(1));
 
-		_hover_pusher_or_tilt_forward_actuation = (sinf(-pitch_forward) - sinf(_params->down_pitch_max))
-				* _params->forward_thrust_scale;
-		// limmit forward actuation to [0, 0.9]
-		_hover_pusher_or_tilt_forward_actuation = _hover_pusher_or_tilt_forward_actuation < 0.0f ? 0.0f :
-				_hover_pusher_or_tilt_forward_actuation;
-		_hover_pusher_or_tilt_forward_actuation = _hover_pusher_or_tilt_forward_actuation > 0.9f ? 0.9f :
-				_hover_pusher_or_tilt_forward_actuation;
-
-		// compensate in combined thrust for tilt (increase thrust with tilt)
-		if (static_cast<vtol_type>(_params->vtol_type) == vtol_type::TILTROTOR) {
-			float thrust_new = _v_att_sp->thrust_body[2] / cosf(_hover_pusher_or_tilt_forward_actuation * M_PI_2_F);
-			_v_att_sp->thrust_body[2] = thrust_new;
-		}
+		_forward_thrust_support = (sinf(-pitch_down) - sinf(_params->down_pitch_max)) * _params->forward_thrust_scale;
+		// limit forward actuation to [0, 0.9]
+		_forward_thrust_support = _forward_thrust_support < 0.0f ? 0.0f : _forward_thrust_support;
+		_forward_thrust_support = _forward_thrust_support > 0.9f ? 0.9f : _forward_thrust_support;
 
 		// return the vehicle to level position
 		float pitch_new = 0.0f;

@@ -319,7 +319,7 @@ void Standard::update_mc_state()
 
 	VtolType::pusher_assist();
 
-	_pusher_throttle = _hover_pusher_or_tilt_forward_actuation;
+	_pusher_throttle = _forward_thrust_support;
 }
 
 void Standard::update_fw_state()

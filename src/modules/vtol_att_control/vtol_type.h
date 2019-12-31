@@ -222,7 +222,7 @@ protected:
 
 	motor_state _motor_state = motor_state::DISABLED;
 
-	float _hover_pusher_or_tilt_forward_actuation = 0.0f; // normalized pusher throttle (standard VTOL) or tilt (tiltrotor)
+	float _forward_thrust_support = 0.0f; // normalized pusher throttle (standard VTOL) or tilt (tiltrotor)
 
 
 
