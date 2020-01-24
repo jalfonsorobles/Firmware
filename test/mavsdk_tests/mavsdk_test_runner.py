@@ -16,11 +16,16 @@ test_matrix = [
         "test_filter": "[multicopter]",
         "timeout_min": 20,
     },
-    #{
+    {
+        "model": "iris_opt_flow",
+        "test_filter": "[multicopter_offboard]",
+        "timeout_min": 20,
+    },
+    # {
     #    "model": "standard_vtol",
     #    "test_filter": "[vtol]",
     #    "timeout_min": 20,
-    #},
+    # },
     # {
     #     "model": "standard_plane",
     #     "test_filter": "[plane]",
@@ -120,9 +125,11 @@ class GzserverRunner(Runner):
                     workspace_dir + "/build/px4_sitl_default/build_gazebo",
                     "GAZEBO_MODEL_PATH":
                     workspace_dir + "/Tools/sitl_gazebo/models",
-                    "PX4_SIM_SPEED_FACTOR": str(speed_factor)}
+                    "PX4_SIM_SPEED_FACTOR": str(speed_factor),
+                    "DISPLAY": os.environ['DISPLAY']}
         self.cmd = "gzserver"
-        self.args = [workspace_dir + "/Tools/sitl_gazebo/worlds/" +
+        self.args = ["--verbose",
+                     workspace_dir + "/Tools/sitl_gazebo/worlds/" +
                      model + ".world"]
         self.log_prefix = "gzserver"
 
@@ -164,6 +171,8 @@ def main():
                         help="Abort on first unsuccessful test")
     parser.add_argument("--gui", default=False, action='store_true',
                         help="Display gzclient with simulation")
+    parser.add_argument("--model", type=str, default='all',
+                        help="Specify which model to run")
     args = parser.parse_args()
 
     if not is_everything_ready():
@@ -242,7 +251,20 @@ def run(args):
 
 def run_test_group(args):
     overall_success = True
-    for group in test_matrix:
+
+    if args.model == 'all':
+        models = test_matrix;
+    else:
+        found = False
+        for elem in test_matrix:
+            if elem['model'] == args.model:
+                models = [elem]
+                found = True
+        if found == False:
+            print("Specified model is not defined")
+            models = []
+
+    for group in models:
         print("Running test group for '{}' with filter '{}'"
               .format(group['model'], group['test_filter']))
 
