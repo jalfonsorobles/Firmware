@@ -391,10 +391,10 @@ void VtolType::pusher_assist()
 	// normalized pusher support throttle (standard VTOL) or tilt (tiltrotor), initialize to 0
 	_forward_thrust_support = 0.0f;
 
-	// if the thrust scale param is zero or the drone is on manual mode,
+	// if the thrust scale param is zero or the drone is not in some position or altitude control mode,
 	// then the pusher-for-pitch strategy is disabled and we can return
-	if (_params->forward_thrust_scale < FLT_EPSILON ||
-	    !_v_control_mode->flag_control_position_enabled) {
+	if (_params->forward_thrust_scale < FLT_EPSILON || !(_v_control_mode->flag_control_position_enabled
+			|| _v_control_mode->flag_control_altitude_enabled)) {
 		return;
 	}
 
