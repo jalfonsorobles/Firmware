@@ -583,6 +583,7 @@ private:
 
 	bool			_forwarding_on{false};
 	bool			_ftp_on{false};
+	bool			_use_software_flow_ctl{false};
 
 	int			_uart_fd{-1};
 
